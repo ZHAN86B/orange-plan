@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>🍊 橙子成长·超级计划 (V45 暖心治愈版)</title>
+    <meta name="apple-mobile-web-app-title" content="橙子成长">
+    <title>🍊 橙子成长·云端实装版 (V47)</title>
+    <!-- 引入 Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         /* --- 1. 基础变量 --- */
         :root {
@@ -63,17 +66,27 @@
         .header-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: nowrap; gap: 15px; }
         .title-area { flex: 1; min-width: 140px; padding-top: 5px; }
         .header-right-group { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+        
+        /* 工具栏 */
         .tools-bar { display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.04); padding: 4px 8px; border-radius: 20px; }
         .tool-btn { background: white; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; font-size: 13px; color: #555; font-weight: bold; padding: 3px 8px; border-radius: 12px; transition: 0.2s; display: flex; align-items: center; gap: 3px; font-family: var(--font); }
         .tool-btn:hover { transform: translateY(-2px); color: var(--primary); border-color: var(--primary); }
         .tool-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
         .theme-select { padding: 3px 6px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); font-size: 12px; color: #555; background: white; cursor: pointer; }
         
+        /* 积分展示 & 云同步状态 */
         .points-display-area { display: flex; flex-direction: column; align-items: flex-end; margin-top: 5px; margin-right: 5px; }
-        .stars-label { font-size: 0.75em; background: #ffec99; color: #e67700; padding: 2px 8px; border-radius: 8px 8px 8px 0; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: -5px; margin-right: 10px; transform: rotate(-3deg); z-index: 2; }
+        .stars-label { font-size: 0.75em; background: #ffec99; color: #e67700; padding: 2px 8px; border-radius: 8px 8px 8px 0; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: -5px; margin-right: 10px; transform: rotate(-3deg); z-index: 2; white-space: nowrap;}
         .stars-number-box { display: flex; align-items: baseline; }
-        .stars-number { font-size: 2.2rem; font-weight: 900; color: var(--wish-color); font-family: "Verdana", sans-serif; line-height: 1; text-shadow: 2px 2px 0px var(--accent), -1px -1px 0 white; }
+        .stars-number { font-size: 2.2rem; font-weight: 900; color: var(--wish-color); font-family: "Verdana", sans-serif; line-height: 1; text-shadow: 2px 2px 0px var(--accent), -1px -1px 0 white; white-space: nowrap; }
         .stars-icon { font-size: 1.5em; margin-left: 2px; animation: pulse 3s infinite; }
+        
+        /* 云同步指示器 */
+        #syncStatus { font-size: 12px; color: #999; margin-top: 5px; display: flex; align-items: center; gap: 4px; }
+        .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; display: inline-block; }
+        .sync-dot.green { background: #51cf66; box-shadow: 0 0 5px #51cf66; }
+        .sync-dot.yellow { background: #fcc419; animation: pulse 1s infinite; }
+        .sync-dot.red { background: #ff6b6b; }
 
         /* 面板标题 */
         .panel h2 { margin-top: 0; border-bottom: 3px dashed var(--primary); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
@@ -84,7 +97,7 @@
 
         /* 勋章墙 */
         .badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; margin-top: 15px; }
-        .badge-card { background: var(--card-bg); border: 2px solid #eee; border-radius: 15px; padding: 15px 5px; text-align: center; transition: 0.3s; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 110px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .badge-card { background: var(--badge-bg); border: 2px solid rgba(0,0,0,0.05); border-radius: 15px; padding: 12px 5px; text-align: center; transition: 0.3s; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 110px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .badge-card.locked { opacity: 0.6; filter: grayscale(100%); background: #f9f9f9; border-color: #eee; }
         .badge-card.locked .badge-icon { opacity: 0.5; }
         .badge-card.locked .badge-status { color: #999; }
@@ -164,55 +177,6 @@
         .wish-btn-edit { background: #eee; color: #666; border: none; padding: 4px 10px; border-radius: 10px; cursor: pointer; font-size: 0.8em; }
         .wish-btn-redeem { width: 100%; background: var(--accent); color: white; border: none; padding: 10px; border-radius: 12px; font-weight: bold; margin-top: 15px; cursor: pointer; font-size: 1em; box-shadow: 0 4px 10px rgba(255,135,135,0.3); }
 
-        /* 心情弹窗 UI 修复 (V45) */
-        .mood-modal-content { 
-            background: linear-gradient(145deg, #ffffff, #f0f7ff); 
-            border-radius: 25px; 
-            padding: 30px; 
-            text-align: center; 
-            max-width: 400px; 
-            width: 90%; 
-            animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            border: 4px solid #a5d8ff; 
-            box-shadow: 0 15px 40px rgba(77, 171, 247, 0.2); 
-        }
-        .mood-title { 
-            color: var(--primary); 
-            font-size: 1.4em; 
-            margin-bottom: 10px; 
-            font-weight: bold;
-        }
-        .mood-grid { display: flex; justify-content: space-around; margin: 25px 0; gap: 10px; }
-        .mood-btn { 
-            font-size: 3em; 
-            cursor: pointer; 
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            padding: 15px; 
-            border-radius: 20px; 
-            background: white; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
-            border: 2px solid #f0f0f0; 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 90px; height: 90px;
-        }
-        .mood-btn small {
-            font-size: 14px;
-            color: #666;
-            font-weight: bold;
-            margin-top: 5px;
-            display: block;
-        }
-        .mood-btn:hover { 
-            transform: translateY(-5px) scale(1.05); 
-            border-color: var(--primary); 
-            background: #e7f5ff; 
-            box-shadow: 0 10px 20px rgba(77, 171, 247, 0.2); 
-        }
-        .mood-display { font-size: 1.5em; margin-left: 10px; vertical-align: middle; }
-        
         .reward-sub-header { font-size: 1.1em; font-weight: bold; padding: 8px 15px; border-radius: 10px; margin: 20px 0 15px 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #555; border-bottom: 2px solid #f0f0f0; }
         .list-item { background: rgba(0,0,0,0.05); margin-bottom: 10px; padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; border-left: 4px solid transparent; }
         .list-item:hover { transform: translateX(5px); background: rgba(0,0,0,0.08); }
@@ -245,21 +209,14 @@
         .preset-btn { background: rgba(0,0,0,0.05); border: 1px solid #eee; padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; }
         .preset-btn:hover { background: var(--secondary); color: white; }
 
-        .timer-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(12, 12, 30, 0.95); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; color: white; backdrop-filter: blur(5px); }
-        .timer-circle { width: 260px; height: 260px; border: 8px solid rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: bold; position: relative; box-shadow: 0 0 30px rgba(77, 171, 247, 0.3); margin-bottom: 30px;}
-        .timer-circle svg { position: absolute; top: 0; left: 0; width: 260px; height: 260px; transform: rotate(-90deg); }
-        .timer-circle circle { fill: none; stroke-width: 10; stroke-linecap: round; stroke: var(--focus-color); stroke-dasharray: 785; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear; filter: drop-shadow(0 0 10px var(--focus-color)); }
-        .timer-msg { margin-bottom: 30px; font-size: 1.4rem; opacity: 0.9; text-align: center;}
-        .btn-timer-lg { padding: 15px 50px; font-size: 1.3rem; border-radius: 40px; background: var(--primary); border:none; color:white; cursor:pointer; transition: 0.3s; }
-        .btn-timer-stop { background: #ff6b6b; box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4); }
-        .btn-timer-stop:hover { transform: scale(1.05); }
-        .timer-select-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; width: 90%; max-width: 600px; margin-top: 20px; max-height: 50vh; overflow-y: auto; padding: 10px;}
-        .timer-opt { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 20px 10px; border-radius: 16px; cursor: pointer; position: relative; transition: all 0.3s; text-align: center; }
-        .timer-opt:hover { background: rgba(255,255,255,0.2); transform: translateY(-5px); border-color: var(--focus-color); box-shadow: 0 5px 15px rgba(116, 143, 252, 0.3); }
-        .timer-del-btn { position: absolute; top: 5px; right: 5px; width: 20px; height: 20px; background: rgba(255,0,0,0.5); border-radius: 50%; color: white; border:none; cursor: pointer; font-size: 12px; line-height: 20px; display: none; }
-        .timer-opt:hover .timer-del-btn { display: block; }
-        .add-new-focus { border: 2px dashed rgba(255,255,255,0.3); display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 2em; color: rgba(255,255,255,0.6); }
-        .add-new-focus:hover { border-color: white; color: white; background: rgba(255,255,255,0.1); }
+        /* 心情弹窗美化 */
+        .mood-modal-content { background: linear-gradient(145deg, #ffffff, #f0f7ff); border-radius: 25px; padding: 30px; text-align: center; max-width: 400px; width: 90%; animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 4px solid #a5d8ff; box-shadow: 0 15px 40px rgba(77, 171, 247, 0.2); }
+        .mood-title { color: var(--primary); font-size: 1.4em; margin-bottom: 10px; font-weight: bold; }
+        .mood-grid { display: flex; justify-content: space-around; margin: 25px 0; gap: 10px; }
+        .mood-btn { font-size: 3em; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); padding: 15px; border-radius: 20px; background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid #f0f0f0; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 90px; height: 90px; }
+        .mood-btn small { font-size: 14px; color: #666; font-weight: bold; margin-top: 5px; display: block; }
+        .mood-btn:hover { transform: translateY(-5px) scale(1.05); border-color: var(--primary); background: #e7f5ff; box-shadow: 0 10px 20px rgba(77, 171, 247, 0.2); }
+        .mood-display { font-size: 1.5em; margin-left: 10px; vertical-align: middle; }
         
         .mood-report-modal { width: 90%; max-width: 400px; text-align: left; }
         .mood-stats-row { display: flex; justify-content: space-around; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 10px; text-align: center; }
@@ -269,7 +226,6 @@
         .mood-history-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #f1f3f5; }
         .mood-history-date { color: #888; font-size: 0.9em; }
 
-        .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;}
         .admin-toolbar { display: none; background: var(--admin-bar-bg); margin: 10px -20px -15px -20px; padding: 10px 20px; border-radius: 0 0 var(--radius) var(--radius); border-top: 1px solid rgba(0,0,0,0.1); align-items: center; gap: 10px; flex-wrap: wrap; animation: pop 0.3s; }
         .admin-label { font-weight: bold; font-size: 0.9em; color: var(--primary); display: flex; align-items: center; gap:5px;}
         .admin-btn { background: white; border: 1px solid var(--primary); color: var(--primary); padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 0.8em; display: flex; align-items: center; gap: 5px;}
@@ -288,8 +244,21 @@
         .guide-section h4 { color: var(--secondary); border-bottom: 1px dashed #eee; padding-bottom: 5px; margin-top: 20px; }
         .guide-section:first-child h4 { margin-top: 0; }
         .guide-close-btn { background: none; border: none; color: white; font-size: 1.2em; cursor: pointer; }
+
+        /* 银行弹窗 */
+        .bank-modal { width: 90%; max-width: 350px; text-align: center; padding: 25px; }
+        .bank-balance-row { display: flex; justify-content: space-around; align-items: center; margin: 20px 0; font-size: 1.1em; background: #f8f9fa; padding: 15px; border-radius: 15px; }
+        .bank-balance-item { display: flex; flex-direction: column; gap: 5px; }
+        .bank-val { font-weight: bold; font-size: 1.3em; color: var(--primary); }
+        .bank-tabs { display: flex; background: #eee; padding: 5px; border-radius: 25px; margin-bottom: 20px; }
+        .bank-tab { flex: 1; border: none; background: none; padding: 8px; border-radius: 20px; cursor: pointer; color: #666; font-weight: bold; transition: 0.3s; }
+        .bank-tab.active { background: white; color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .bank-quick-btns { display: flex; gap: 8px; justify-content: center; margin: 15px 0; }
+        .bank-quick-btn { background: #e7f5ff; border: 1px solid #d0ebff; color: var(--primary); padding: 5px 12px; border-radius: 8px; cursor: pointer; }
+        .bank-quick-btn:hover { background: var(--primary); color: white; }
+        .btn-confirm { background: var(--habit-color); color: white; width: 100%; padding: 12px; border: none; border-radius: 12px; font-size: 1.1em; cursor: pointer; font-weight: bold; }
         
-        /* 心愿设定弹窗 */
+        /* 心愿弹窗 */
         .wish-input-group { margin-bottom: 15px; text-align: left; }
         .wish-input-group label { display: block; font-size: 0.9em; color: #666; margin-bottom: 5px; font-weight: bold; }
         .wish-input-group input { width: 100%; padding: 10px; border: 2px solid #eee; border-radius: 10px; font-family: var(--font); box-sizing: border-box; }
@@ -305,7 +274,7 @@
 
 <div id="bg-anim-container"></div>
 
-<!-- 每日心情输入弹窗 (V45) -->
+<!-- 每日心情输入弹窗 (V47 修正版) -->
 <div id="moodModal" class="modal-overlay">
     <div class="mood-modal-content">
         <h2 class="mood-title">🌥️ 早安！今天心情怎么样？</h2>
@@ -560,11 +529,20 @@
     
     <div style="grid-column: 1/-1; text-align: center; margin-top: 20px; border-top:1px solid #eee; padding-top:20px;">
         <input type="file" id="fileInput" style="display: none;" onchange="importData(this)">
-        <div style="font-size: 0.8em; color: #aaa;">V45 - 橙子成长·暖心治愈版</div>
+        <div style="font-size: 0.8em; color: #aaa;">V47 - 橙子成长·云端实装版 (Code by DeepSeek)</div>
+        <div id="syncStatus">Initializing...</div>
     </div>
 </div>
 
 <script>
+    // === 1. SUPABASE CONFIGURATION ===
+    // ⚠️ 请把下面的 URL 和 Key 替换成你自己的！
+    const supabaseUrl = 'https://yfqipywumroxanjiaagu.supabase.co'; 
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlmcWlweXd1bXJveGFuamlhYWd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMDg1MTAsImV4cCI6MjA3OTc4NDUxMH0.JEu1LBQgOxoMLkBfFcv76P636LxyKEGRzhBSjg9VPIw'; 
+    
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    const DB_ID = 1; // 家庭唯一ID (简易版写死为1)
+
     // --- 数据逻辑 ---
     const defaultData = { 
         stars: 0, totalStars: 0, theme: 'sky', pwd: '1234', lastLoginDate: '', isMuted: false,
@@ -599,26 +577,87 @@
     let currentTaskVal = 0;
     let currentBankMode = 'deposit';
 
-    function init() {
-        const saved = localStorage.getItem('kidPlanState_v45'); // V45
-        if (saved) {
-            try {
-                const oldState = JSON.parse(saved);
-                state = { ...defaultData, ...oldState };
+    // --- 核心：云端初始化 ---
+    async function init() {
+        updateSyncStatus('loading');
+        
+        try {
+            let { data, error } = await supabase
+                .from('user_data')
+                .select('content')
+                .eq('id', DB_ID)
+                .single();
+
+            if (error && error.code !== 'PGRST116') { 
+                console.error('Cloud load error:', error);
+                alert('云端同步出错，将使用本地缓存 (请检查控制台)');
+                loadFromLocal();
+            } else if (data && data.content) {
+                console.log('Loaded from cloud:', data.content);
+                state = { ...defaultData, ...data.content };
                 if (!state.wish) state.wish = { name: null, cost: 0, saved: 0 };
                 if (state.wish.saved === undefined) state.wish.saved = 0; 
                 if (!state.moods) state.moods = {};
                 if (!state.inventory) state.inventory = [];
                 if (state.isMuted === undefined) state.isMuted = false;
-            } catch(e) {}
-        } else {
-            state.habits = [{id:Date.now(), text:"早睡早起", val:5, done:false, streak:0, lastDate:''}];
-            state.rewards = [{id:Date.now()+2, text:"看电视", cost:20, icon:"📺"}];
+                updateSyncStatus('success');
+            } else {
+                loadFromLocal();
+                save(); 
+            }
+        } catch (err) {
+            console.error(err);
+            loadFromLocal();
         }
-        dailyCheck(); checkMood(); applyTheme(); render(); updateMuteBtn();
+
+        state.habits = state.habits.length ? state.habits : [{id:Date.now(), text:"早睡早起", val:5, done:false, streak:0, lastDate:''}];
+        state.rewards = state.rewards.length ? state.rewards : [{id:Date.now()+2, text:"看电视", cost:20, icon:"📺"}];
         
-        // 强制初始化输入框状态
+        dailyCheck(); 
+        checkMood(); 
+        applyTheme(); 
+        render(); 
+        updateMuteBtn();
+        
         document.getElementById('newPlanVal').style.display = isParentMode ? 'block' : 'none';
+    }
+
+    function loadFromLocal() {
+        const saved = localStorage.getItem('kidPlanState_v47');
+        if (saved) {
+            try {
+                state = { ...defaultData, ...JSON.parse(saved) };
+            } catch(e) {}
+        }
+        updateSyncStatus('error');
+    }
+
+    async function save() {
+        localStorage.setItem('kidPlanState_v47', JSON.stringify(state));
+        
+        document.getElementById('starCount').innerText = state.stars;
+        document.getElementById('totalStars').innerText = state.totalStars;
+        updateLevel(); renderHistory(); renderWish(); renderBadges(); renderBank(); renderInventory();
+
+        updateSyncStatus('loading');
+        const { error } = await supabase
+            .from('user_data')
+            .upsert({ id: DB_ID, content: state });
+
+        if (error) {
+            console.error('Cloud save error:', error);
+            updateSyncStatus('error');
+        } else {
+            updateSyncStatus('success');
+        }
+    }
+
+    function updateSyncStatus(status) {
+        const el = document.getElementById('syncStatus');
+        if(!el) return;
+        if (status === 'loading') el.innerHTML = '<span class="sync-dot yellow"></span> 正在同步...';
+        else if (status === 'success') el.innerHTML = '<span class="sync-dot green"></span> 云端已同步';
+        else if (status === 'error') el.innerHTML = '<span class="sync-dot red"></span> 同步失败(离线)';
     }
 
     function dailyCheck() {
@@ -639,14 +678,6 @@
             }
             state.lastLoginDate = todayStr;
         }
-        save();
-    }
-
-    function save() {
-        localStorage.setItem('kidPlanState_v45', JSON.stringify(state));
-        document.getElementById('starCount').innerText = state.stars;
-        document.getElementById('totalStars').innerText = state.totalStars;
-        updateLevel(); renderHistory(); renderWish(); renderBadges(); renderBank(); renderInventory();
     }
 
     function checkMood() {
@@ -879,13 +910,13 @@
         const container = document.getElementById('badgeList');
         container.innerHTML = badgesDef.map(b => {
             const unlocked = b.check(state);
-            const cls = unlocked ? 'unlocked' : 'locked';
+            const cls = unlocked ? 'badge-card unlocked' : 'badge-card locked';
             const statusText = unlocked ? '已获取' : '未解锁';
             return `
-                <div class="badge-card ${cls}" data-desc="${b.desc}">
+                <div class="${cls}" data-desc="${b.desc}">
                     <div class="badge-icon">${b.icon}</div>
                     <div class="badge-name">${b.name}</div>
-                    <div class="badge-status">${statusText}</div>
+                    <div class="badge-status" style="font-size:0.6em; margin-top:2px; color:${unlocked?'#e67700':'#999'}">${statusText}</div>
                 </div>
             `;
         }).join('');
