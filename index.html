@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="橙子成长">
-    <title>🍊 橙子成长·超级计划 (V49 完整回归版)</title>
+    <title>🍊 橙子成长·超级计划 (V51 完美布局版)</title>
     <!-- 引入 Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -50,9 +50,9 @@
         @keyframes meteorSlide { 0% { transform: translate(0, 0) scale(1); opacity: 0; } 5% { opacity: 1; } 15% { transform: translate(-150vh, 150vh) scale(1); opacity: 0; } 100% { opacity: 0; } }
         @keyframes floatSpace { 0% { transform: translate(0, 0) rotate(0deg); } 50% { transform: translate(0, 30px) rotate(0deg); } 100% { transform: translate(0, 0) rotate(0deg); } }
         @keyframes pop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(5deg); } 50% { transform: rotate(0deg); } 75% { transform: rotate(-5deg); } 100% { transform: rotate(0deg); } }
         @keyframes breath { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes growUp { from { height: 0; opacity: 0; } to { height: var(--h); opacity: 1; } }
 
         /* --- 3. 布局系统 --- */
         .app-container { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: 20px; padding-top: 20px; display: none; }
@@ -67,35 +67,48 @@
         .header-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: nowrap; gap: 15px; }
         .title-area { flex: 1; min-width: 140px; padding-top: 5px; }
         .header-right-group { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-        
-        /* 工具栏 */
         .tools-bar { display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.04); padding: 4px 8px; border-radius: 20px; }
         .tool-btn { background: white; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; font-size: 13px; color: #555; font-weight: bold; padding: 3px 8px; border-radius: 12px; transition: 0.2s; display: flex; align-items: center; gap: 3px; font-family: var(--font); }
         .tool-btn:hover { transform: translateY(-2px); color: var(--primary); border-color: var(--primary); }
         .tool-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
         .theme-select { padding: 3px 6px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); font-size: 12px; color: #555; background: white; cursor: pointer; }
         
-        /* 积分展示 & 云同步状态 */
         .points-display-area { display: flex; flex-direction: column; align-items: flex-end; margin-top: 5px; margin-right: 5px; }
         .stars-label { font-size: 0.75em; background: #ffec99; color: #e67700; padding: 2px 8px; border-radius: 8px 8px 8px 0; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: -5px; margin-right: 10px; transform: rotate(-3deg); z-index: 2; white-space: nowrap;}
         .stars-number-box { display: flex; align-items: baseline; }
-        .stars-number { font-size: 2.2rem; font-weight: 900; color: var(--wish-color); font-family: "Verdana", sans-serif; line-height: 1; text-shadow: 2px 2px 0px var(--accent), -1px -1px 0 white; white-space: nowrap; }
+        .stars-number { font-size: 2.2rem; font-weight: 900; color: var(--wish-color); font-family: "Verdana", sans-serif; line-height: 1; text-shadow: 2px 2px 0px var(--accent), -1px -1px 0 white; }
         .stars-icon { font-size: 1.5em; margin-left: 2px; animation: pulse 3s infinite; }
         
-        /* 云同步指示器 */
         #syncStatus { position: fixed; top: 5px; left: 50%; transform: translateX(-50%); font-size: 12px; color: #999; background: rgba(255,255,255,0.8); padding: 2px 8px; border-radius: 10px; z-index: 9999; pointer-events: none; }
         .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; display: inline-block; }
         .sync-dot.green { background: #51cf66; box-shadow: 0 0 5px #51cf66; }
         .sync-dot.yellow { background: #fcc419; animation: pulse 1s infinite; }
         .sync-dot.red { background: #ff6b6b; }
 
-        /* 组件样式 */
+        /* 面板标题 */
         .panel h2 { margin-top: 0; border-bottom: 3px dashed var(--primary); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         .habit-panel { border-top: 5px solid var(--habit-color); }
         .plan-panel { border-top: 5px solid var(--plan-color); }
         .reward-panel { border-top: 5px solid var(--accent); }
         .badge-panel { border-top: 5px solid #be4bdb; } 
-        
+        .review-panel { border-top: 5px solid #22b8cf; } /* 新增 */
+
+        /* --- 📊 统计回顾版块样式 --- */
+        .stat-controls { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 5px; }
+        .stat-btn { flex: 1; padding: 6px; border: 1px solid #eee; background: white; border-radius: 15px; cursor: pointer; font-size: 0.8em; color: #666; transition: 0.2s; white-space: nowrap; min-width: 50px; }
+        .stat-btn:hover { background: #f0f4f8; color: var(--primary); }
+        .stat-btn.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: bold; }
+        .stat-custom-date { border: 1px solid #eee; border-radius: 15px; padding: 4px; font-size: 0.8em; color: #666; background: white; cursor: pointer; display: flex; align-items: center; }
+        .stat-summary { background: linear-gradient(135deg, #e3fafc, #f1f3f5); padding: 10px; border-radius: 15px; text-align: center; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .stat-val { font-size: 1.6em; font-weight: bold; color: #1098ad; line-height: 1; }
+        .stat-label { font-size: 0.7em; color: #666; margin-top: 5px; }
+        .stat-chart-container { display: flex; align-items: flex-end; justify-content: space-around; height: 100px; padding-top: 15px; border-bottom: 1px solid #eee; gap: 2px; }
+        .stat-bar-group { display: flex; flex-direction: column; align-items: center; flex: 1; margin: 0 1px; cursor: pointer; position: relative; }
+        .stat-bar { width: 70%; max-width: 15px; background: var(--plan-color); border-radius: 4px 4px 0 0; min-height: 4px; transition: 0.3s; position: relative; animation: growUp 0.6s ease-out; opacity: 0.8; }
+        .stat-bar:hover { background: var(--habit-color); transform: scaleY(1.1); opacity: 1; }
+        .stat-date { font-size: 0.6em; color: #999; margin-top: 5px; white-space: nowrap; transform: scale(0.85); }
+        .stat-bar-group:hover::after { content: attr(data-tooltip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 4px 8px; border-radius: 5px; font-size: 0.7em; z-index: 10; white-space: nowrap; margin-bottom: 5px; }
+
         /* 历史足迹 */
         .history-section { margin-bottom: 20px; background: rgba(255,255,255,0.8); backdrop-filter: blur(5px); padding: 10px 20px; border-radius: var(--radius); border: 2px dashed var(--primary); box-shadow: var(--shadow); display: flex; flex-direction: column; }
         .history-title { font-size: 0.8em; color: var(--primary); font-weight: bold; margin-bottom: 8px; }
@@ -104,6 +117,7 @@
         .history-date { font-size: 0.7em; color: #999; margin-bottom: 4px; }
         .history-bubble { width: 36px; height: 36px; border-radius: 50%; background: #eee; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; color: #555; font-size: 0.8em; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: all 0.2s ease; position: relative; }
         .history-bubble:hover { transform: translateY(-3px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); z-index: 2; }
+        .history-bubble span { font-size: 1.1em; line-height: 1; }
         .h-level-0 { background: #f1f3f5; color: #adb5bd; border-color: #dee2e6; }
         .h-level-1 { background: #d3f9d8; color: #2b8a3e; border-color: #b2f2bb; }
         .h-level-2 { background: #ffd8a8; color: #e67700; border-color: #ffc078; }
@@ -160,8 +174,8 @@
         .focus-banner::after { content: "⏱️"; position: absolute; right: -15px; bottom: -25px; font-size: 5em; opacity: 0.08; transform: rotate(-20deg); pointer-events: none;}
         .focus-info h3 { margin: 0; color: var(--focus-color); font-size: 1.5em; display: flex; align-items: center; gap: 10px; }
         .focus-info p { margin: 5px 0 0 0; color: #666; font-size: 0.95em; }
-        .focus-btn-start { background: var(--focus-color); color: white; border: none; padding: 10px 25px; border-radius: 30px; font-size: 1em; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(116, 143, 252, 0.3); transition: 0.2s; display: flex; align-items: center; gap: 8px; z-index: 2; }
-        .focus-btn-start:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(116, 143, 252, 0.4); }
+        .focus-btn-start { background: var(--focus-color); color: white; border: none; padding: 10px 25px; border-radius: 30px; font-size: 1em; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(116, 143, 252, 0.3); transition: 0.2s; display: flex; align-items: center; gap: 8px; z-index: 2; }
+        .focus-btn-start:hover { transform: scale(1.05); box-shadow: 0 6px 15px rgba(116, 143, 252, 0.4); }
 
         /* 勋章墙 */
         .badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; margin-top: 15px; }
@@ -177,11 +191,7 @@
         .badge-status { font-size: 0.7em; color: #aaa; margin-top: auto; }
         .badge-card:hover::after { content: attr(data-desc); position: absolute; bottom: 90%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; font-size: 0.75em; padding: 8px 12px; border-radius: 8px; width: 140px; text-align: center; z-index: 20; pointer-events: none; margin-bottom: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); white-space: normal; line-height: 1.4; }
 
-        .reward-sub-header { font-size: 1.1em; font-weight: bold; padding: 8px 15px; border-radius: 10px; margin: 20px 0 15px 0; display: flex; align-items: center; gap: 8px; }
-        .wish-header-style { background: var(--wish-color); color: white; }
-        .market-header-style { background: var(--daily-reward-color); color: #555; }
-        [data-theme="space"] .market-header-style { background: #3b5bdb; color: white; }
-
+        .reward-sub-header { font-size: 1.1em; font-weight: bold; padding: 8px 15px; border-radius: 10px; margin: 20px 0 15px 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #555; border-bottom: 2px solid #f0f0f0; }
         .list-item { background: rgba(0,0,0,0.05); margin-bottom: 10px; padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; border-left: 4px solid transparent; }
         .list-item:hover { transform: translateX(5px); background: rgba(0,0,0,0.08); }
         .habit-item { border-left-color: var(--habit-color); }
@@ -237,6 +247,7 @@
         .mood-history-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #f1f3f5; }
         .mood-history-date { color: #888; font-size: 0.9em; }
 
+        .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;}
         .admin-toolbar { display: none; background: var(--admin-bar-bg); margin: 10px -20px -15px -20px; padding: 10px 20px; border-radius: 0 0 var(--radius) var(--radius); border-top: 1px solid rgba(0,0,0,0.1); align-items: center; gap: 10px; flex-wrap: wrap; animation: pop 0.3s; }
         .admin-label { font-weight: bold; font-size: 0.9em; color: var(--primary); display: flex; align-items: center; gap:5px;}
         .admin-btn { background: white; border: 1px solid var(--primary); color: var(--primary); padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 0.8em; display: flex; align-items: center; gap: 5px;}
@@ -274,53 +285,22 @@
         .btn-login { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(77, 171, 247, 0.3); }
         .btn-login:hover { transform: scale(1.05); }
 
-        /* --- 心情胶囊美化 (V45+ 修复) --- */
-        .mood-modal-content { 
-            background: linear-gradient(145deg, #ffffff, #f0f7ff); 
-            border-radius: 25px; 
-            padding: 30px; 
-            text-align: center; 
-            max-width: 400px; 
-            width: 90%; 
-            animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            border: 4px solid #a5d8ff; 
-            box-shadow: 0 15px 40px rgba(77, 171, 247, 0.2); 
-        }
-        .mood-title { 
-            color: var(--primary); 
-            font-size: 1.4em; 
-            margin-bottom: 10px; 
-            font-weight: bold;
-        }
-        .mood-grid { display: flex; justify-content: space-around; margin: 25px 0; gap: 10px; }
-        .mood-btn { 
-            font-size: 3em; 
-            cursor: pointer; 
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            padding: 15px; 
-            border-radius: 20px; 
-            background: white; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
-            border: 2px solid #f0f0f0; 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 90px; height: 90px;
-        }
-        .mood-btn small {
-            font-size: 14px;
-            color: #666;
-            font-weight: bold;
-            margin-top: 5px;
-            display: block;
-        }
-        .mood-btn:hover { 
-            transform: translateY(-5px) scale(1.05); 
-            border-color: var(--primary); 
-            background: #e7f5ff; 
-            box-shadow: 0 10px 20px rgba(77, 171, 247, 0.2); 
-        }
+        /* --- V50 统计面板样式 --- */
+        .stat-controls { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 5px; }
+        .stat-btn { flex: 1; padding: 6px; border: 1px solid #eee; background: white; border-radius: 15px; cursor: pointer; font-size: 0.8em; color: #666; transition: 0.2s; white-space: nowrap; min-width: 50px; }
+        .stat-btn:hover { background: #f0f4f8; color: var(--primary); }
+        .stat-btn.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: bold; }
+        .stat-custom-date { border: 1px solid #eee; border-radius: 15px; padding: 4px; font-size: 0.8em; color: #666; background: white; cursor: pointer; display: flex; align-items: center; }
+        .stat-summary { background: linear-gradient(135deg, #e3fafc, #f1f3f5); padding: 10px; border-radius: 15px; text-align: center; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .stat-val { font-size: 1.6em; font-weight: bold; color: #1098ad; line-height: 1; }
+        .stat-label { font-size: 0.7em; color: #666; margin-top: 5px; }
+        .stat-chart-container { display: flex; align-items: flex-end; justify-content: space-around; height: 100px; padding-top: 15px; border-bottom: 1px solid #eee; gap: 2px; }
+        .stat-bar-group { display: flex; flex-direction: column; align-items: center; flex: 1; margin: 0 1px; cursor: pointer; position: relative; }
+        .stat-bar { width: 70%; max-width: 15px; background: var(--plan-color); border-radius: 4px 4px 0 0; min-height: 4px; transition: 0.3s; position: relative; animation: growUp 0.6s ease-out; opacity: 0.8; }
+        .stat-bar:hover { background: var(--habit-color); transform: scaleY(1.1); opacity: 1; }
+        .stat-date { font-size: 0.6em; color: #999; margin-top: 5px; white-space: nowrap; transform: scale(0.85); }
+        .stat-bar-group:hover::after { content: attr(data-tooltip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 4px 8px; border-radius: 5px; font-size: 0.7em; z-index: 10; white-space: nowrap; margin-bottom: 5px; }
+        @keyframes growUp { from { height: 0; opacity: 0; } to { height: var(--h); opacity: 1; } }
 
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         @media (max-width: 700px) { .main-grid { grid-template-columns: 1fr; } }
@@ -342,7 +322,7 @@
     </div>
 </div>
 
-<!-- 每日心情输入弹窗 (美化修复) -->
+<!-- 每日心情输入弹窗 -->
 <div id="moodModal" class="modal-overlay">
     <div class="mood-modal-content">
         <h2 class="mood-title">🌥️ 早安！今天心情怎么样？</h2>
@@ -443,7 +423,7 @@
     </div>
 </div>
 
-<!-- 专注时钟 (V49 Manual Trigger) -->
+<!-- 专注时钟 -->
 <div id="timerModal" class="timer-overlay" style="display: none !important;">
     <div id="timerSetup" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
         <h2 style="color:white; text-shadow:0 2px 5px rgba(0,0,0,0.5);">⏱️ 专注挑战</h2>
@@ -476,9 +456,7 @@
                 
                 <div class="header-right-group">
                     <div class="tools-bar">
-                        <!-- V49: 新增心情手动触发按钮 -->
                         <button onclick="document.getElementById('moodModal').style.display='flex'" class="tool-btn" title="记录心情">😊心情</button>
-                        
                         <button onclick="openGuide()" class="tool-btn">❓指南</button>
                         <button id="muteBtn" class="tool-btn" onclick="toggleMute()">🔊</button>
                         <button id="globalLockBtn" class="tool-btn" onclick="toggleParentLock()">🔒家长模式</button>
@@ -598,12 +576,35 @@
                 <h2><span>🏆 荣誉勋章墙</span> <span style="font-size:0.6em; color:#999; font-weight:normal;">自动解锁成就</span></h2>
                 <div class="badge-grid" id="badgeList"></div>
             </div>
+
+            <!-- 📊 数据回顾 (V51 新增位置) -->
+            <div class="panel review-panel" style="margin-top: 20px;">
+                <h2><span>📊 数据回顾</span> <span style="font-size:0.6em;color:#999;font-weight:normal;">查看成长曲线</span></h2>
+                <div class="stat-controls">
+                    <button class="stat-btn active" onclick="updateStats('week')">最近7天</button>
+                    <button class="stat-btn" onclick="updateStats('month')">最近30天</button>
+                    <button class="stat-btn" onclick="updateStats('year')">本年度</button>
+                    <div class="stat-custom-date" title="选择日期查看">📅 <input type="date" id="statDateInput" onchange="updateStats('custom')" style="border:none; outline:none; background:transparent; font-size:0.8em; width:90px;"></div>
+                </div>
+                <div class="stat-summary">
+                    <div style="text-align:center">
+                        <div class="stat-val" id="statTotal">0</div>
+                        <div class="stat-label">区间获星总数</div>
+                    </div>
+                    <div style="height:40px; width:1px; background:#ccc; margin:0 15px;"></div>
+                    <div style="text-align:center">
+                        <div class="stat-val" id="statAvg" style="color:var(--accent); font-size:1.5em;">0</div>
+                        <div class="stat-label">平均每日</div>
+                    </div>
+                </div>
+                <div class="stat-chart-container" id="statChart"></div>
+            </div>
         </div>
     </div>
     
     <div style="grid-column: 1/-1; text-align: center; margin-top: 20px; border-top:1px solid #eee; padding-top:20px;">
         <input type="file" id="fileInput" style="display: none;" onchange="importData(this)">
-        <div style="font-size: 0.8em; color: #aaa;">V49 - 橙子成长·完整回归版 (Code by DeepSeek)</div>
+        <div style="font-size: 0.8em; color: #aaa;">V51 - 橙子成长·完美布局版 (Code by DeepSeek)</div>
         <div id="syncStatus">Waiting for login...</div>
     </div>
 </div>
@@ -684,7 +685,7 @@
 
     // --- 核心：云端初始化 ---
     async function initApp() {
-        document.getElementById('appContainer').style.display = 'block'; // 显示主界面
+        document.getElementById('appContainer').style.display = 'block'; 
         document.getElementById('userIdDisplay').innerText = `@${currentUserId}`;
         updateSyncStatus('loading');
         
@@ -730,13 +731,14 @@
         applyTheme(); 
         render(); 
         updateMuteBtn();
+        updateStats('week'); // 默认显示周统计
         
         document.getElementById('newPlanVal').style.display = isParentMode ? 'block' : 'none';
     }
 
     function loadFromLocal() {
         // 使用带用户ID的 Key，实现本地隔离
-        const saved = localStorage.getItem(`kidPlanState_v49_${currentUserId}`);
+        const saved = localStorage.getItem(`kidPlanState_v51_${currentUserId}`);
         if (saved) {
             try {
                 state = { ...defaultData, ...JSON.parse(saved) };
@@ -747,7 +749,7 @@
 
     async function save() {
         // 1. 保存到本地 (带用户ID后缀)
-        localStorage.setItem(`kidPlanState_v49_${currentUserId}`, JSON.stringify(state));
+        localStorage.setItem(`kidPlanState_v51_${currentUserId}`, JSON.stringify(state));
         
         document.getElementById('starCount').innerText = state.stars;
         document.getElementById('totalStars').innerText = state.totalStars;
@@ -775,6 +777,79 @@
         else if (status === 'error') el.innerHTML = '<span class="sync-dot red"></span> 同步失败(离线)';
     }
 
+    // --- V50 数据回顾 (统计功能) ---
+    function updateStats(range) {
+        document.querySelectorAll('.stat-btn').forEach(b => b.classList.remove('active'));
+        if (range !== 'custom') event.target.classList.add('active');
+
+        const chartContainer = document.getElementById('statChart');
+        chartContainer.innerHTML = '';
+        
+        const today = new Date();
+        let dataPoints = [];
+        let totalScore = 0;
+
+        if (range === 'week') {
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(d.getDate() - i);
+                const key = d.toDateString();
+                const score = state.history[key] || 0;
+                const dayName = ['日','一','二','三','四','五','六'][d.getDay()];
+                dataPoints.push({ label: dayName, val: score, date: d.toLocaleDateString() });
+                totalScore += score;
+            }
+        } else if (range === 'month') {
+             for (let i = 29; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(d.getDate() - i);
+                const key = d.toDateString();
+                const score = state.history[key] || 0;
+                const label = (i % 5 === 0) ? (d.getMonth()+1)+'/'+d.getDate() : ''; 
+                dataPoints.push({ label: label, val: score, date: d.toLocaleDateString() });
+                totalScore += score;
+            }
+        } else if (range === 'year') {
+            const monthlyData = {};
+            for(let k in state.history) {
+                const d = new Date(k);
+                if(d.getFullYear() === today.getFullYear()) {
+                    const m = d.getMonth();
+                    if(!monthlyData[m]) monthlyData[m] = 0;
+                    monthlyData[m] += state.history[k];
+                }
+            }
+            for(let i=0; i<12; i++) {
+                dataPoints.push({ label: (i+1)+'月', val: monthlyData[i]||0, date: `${today.getFullYear()}年${i+1}月` });
+                totalScore += (monthlyData[i]||0);
+            }
+        }
+
+        document.getElementById('statTotal').innerText = totalScore;
+        const days = range === 'week' ? 7 : (range === 'month' ? 30 : 12);
+        document.getElementById('statAvg').innerText = Math.round(totalScore / (dataPoints.length || 1));
+
+        const maxVal = Math.max(...dataPoints.map(p => p.val), 10);
+        dataPoints.forEach(p => {
+            const height = (p.val / maxVal) * 100;
+            const color = p.val > 0 ? 'var(--plan-color)' : '#eee';
+            const hoverColor = p.val > 0 ? 'var(--habit-color)' : '#ddd';
+            
+            const barGroup = document.createElement('div');
+            barGroup.className = 'stat-bar-group';
+            barGroup.setAttribute('data-tooltip', `${p.date}: ${p.val}星`);
+            
+            barGroup.innerHTML = `
+                <div class="stat-bar" style="height:${height}%; background:${color}; --h:${height}%"></div>
+                <div class="stat-date">${p.label}</div>
+            `;
+            barGroup.onmouseover = function() { this.querySelector('.stat-bar').style.background = hoverColor; };
+            barGroup.onmouseout = function() { this.querySelector('.stat-bar').style.background = color; };
+            
+            chartContainer.appendChild(barGroup);
+        });
+    }
+
     function dailyCheck() {
         const todayStr = new Date().toDateString();
         const yesterday = new Date(Date.now() - 86400000).toDateString();
@@ -793,7 +868,6 @@
             }
             state.lastLoginDate = todayStr;
         }
-        // save() called by caller or logic flow
     }
 
     function checkMood() {
