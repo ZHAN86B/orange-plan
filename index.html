@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="橙子成长">
-    <title>🍊 橙子成长·超级计划 (V51 完美布局版)</title>
+    <title>🍊 橙子成长·超级计划 (V55 精简版)</title>
     <!-- 引入 Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -91,9 +91,9 @@
         .plan-panel { border-top: 5px solid var(--plan-color); }
         .reward-panel { border-top: 5px solid var(--accent); }
         .badge-panel { border-top: 5px solid #be4bdb; } 
-        .review-panel { border-top: 5px solid #22b8cf; } /* 新增 */
+        .review-panel { border-top: 5px solid #22b8cf; } 
 
-        /* --- 📊 统计回顾版块样式 --- */
+        /* 统计回顾版块样式 */
         .stat-controls { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 5px; }
         .stat-btn { flex: 1; padding: 6px; border: 1px solid #eee; background: white; border-radius: 15px; cursor: pointer; font-size: 0.8em; color: #666; transition: 0.2s; white-space: nowrap; min-width: 50px; }
         .stat-btn:hover { background: #f0f4f8; color: var(--primary); }
@@ -108,6 +108,7 @@
         .stat-bar:hover { background: var(--habit-color); transform: scaleY(1.1); opacity: 1; }
         .stat-date { font-size: 0.6em; color: #999; margin-top: 5px; white-space: nowrap; transform: scale(0.85); }
         .stat-bar-group:hover::after { content: attr(data-tooltip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 4px 8px; border-radius: 5px; font-size: 0.7em; z-index: 10; white-space: nowrap; margin-bottom: 5px; }
+        @keyframes growUp { from { height: 0; opacity: 0; } to { height: var(--h); opacity: 1; } }
 
         /* 历史足迹 */
         .history-section { margin-bottom: 20px; background: rgba(255,255,255,0.8); backdrop-filter: blur(5px); padding: 10px 20px; border-radius: var(--radius); border: 2px dashed var(--primary); box-shadow: var(--shadow); display: flex; flex-direction: column; }
@@ -239,6 +240,14 @@
         .add-new-focus { border: 2px dashed rgba(255,255,255,0.3); display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 2em; color: rgba(255,255,255,0.6); }
         .add-new-focus:hover { border-color: white; color: white; background: rgba(255,255,255,0.1); }
         
+        /* --- 每日心情弹窗样式 --- */
+        .mood-modal-content { background: white; padding: 30px; border-radius: 20px; width: 320px; text-align: center; animation: pop 0.5s; position: relative; }
+        .mood-title { font-size: 1.4em; color: var(--text-color); margin-bottom: 25px; font-weight: bold; }
+        .mood-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .mood-btn { background: #f8f9fa; border: 2px solid #eee; border-radius: 15px; padding: 15px 5px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .mood-btn:hover { transform: translateY(-5px); border-color: var(--primary); background: #e7f5ff; }
+        .mood-btn small { font-size: 0.8em; color: #666; font-weight: bold; }
+
         .mood-report-modal { width: 90%; max-width: 400px; text-align: left; }
         .mood-stats-row { display: flex; justify-content: space-around; margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 10px; text-align: center; }
         .mood-stat-item { display: flex; flex-direction: column; }
@@ -285,7 +294,7 @@
         .btn-login { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(77, 171, 247, 0.3); }
         .btn-login:hover { transform: scale(1.05); }
 
-        /* --- V50 统计面板样式 --- */
+        /* V50 统计面板样式 */
         .stat-controls { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 5px; }
         .stat-btn { flex: 1; padding: 6px; border: 1px solid #eee; background: white; border-radius: 15px; cursor: pointer; font-size: 0.8em; color: #666; transition: 0.2s; white-space: nowrap; min-width: 50px; }
         .stat-btn:hover { background: #f0f4f8; color: var(--primary); }
@@ -539,7 +548,6 @@
 
                 <div class="reward-sub-header wish-header-style">
                     <span>🦄 长期心愿</span>
-                    <button class="btn-header-action" onclick="openWishModal()">🎯 设定目标</button>
                 </div>
                 <div class="wish-jar-container" id="wishJar"></div>
                 
@@ -577,26 +585,36 @@
                 <div class="badge-grid" id="badgeList"></div>
             </div>
 
-            <!-- 📊 数据回顾 (V51 新增位置) -->
-            <div class="panel review-panel" style="margin-top: 20px;">
-                <h2><span>📊 数据回顾</span> <span style="font-size:0.6em;color:#999;font-weight:normal;">查看成长曲线</span></h2>
+            <!-- 📊 数据回顾 (已升级为：超级成长档案) -->
+            <div class="panel review-panel" style="margin-top: 20px; border-top: 5px solid #22b8cf;">
+                <h2>
+                    <span>🚀 超级成长档案</span> 
+                    <span style="font-size:0.6em;color:#999;font-weight:normal;">记录每一个发光时刻</span>
+                </h2>
+                
+                <!-- 时间控制器 -->
                 <div class="stat-controls">
-                    <button class="stat-btn active" onclick="updateStats('week')">最近7天</button>
-                    <button class="stat-btn" onclick="updateStats('month')">最近30天</button>
-                    <button class="stat-btn" onclick="updateStats('year')">本年度</button>
-                    <div class="stat-custom-date" title="选择日期查看">📅 <input type="date" id="statDateInput" onchange="updateStats('custom')" style="border:none; outline:none; background:transparent; font-size:0.8em; width:90px;"></div>
+                    <button class="stat-btn active" onclick="updateStats('week')">📅 近7天</button>
+                    <button class="stat-btn" onclick="updateStats('month')">🗓️ 近30天</button>
+                    <button class="stat-btn" onclick="updateStats('year')">🗓️ 本年度</button>
+                    <div class="stat-custom-date" title="时光机">⏳ <input type="date" id="statDateInput" onchange="updateStats('custom')" style="border:none; outline:none; background:transparent; font-size:0.8em; width:90px;"></div>
                 </div>
+
+                <!-- 核心数据展示 -->
                 <div class="stat-summary">
                     <div style="text-align:center">
-                        <div class="stat-val" id="statTotal">0</div>
-                        <div class="stat-label">区间获星总数</div>
+                        <div class="stat-val" id="statTotal" style="color: #22b8cf;">0</div>
+                        <div class="stat-label">✨ 期间积攒能量</div>
                     </div>
                     <div style="height:40px; width:1px; background:#ccc; margin:0 15px;"></div>
                     <div style="text-align:center">
-                        <div class="stat-val" id="statAvg" style="color:var(--accent); font-size:1.5em;">0</div>
-                        <div class="stat-label">平均每日</div>
+                        <div class="stat-val" id="statAvg" style="color: #ff922b; font-size:1.5em;">0</div>
+                        <div class="stat-label">🔥 每日平均战力</div>
                     </div>
                 </div>
+
+                <!-- 图表区域 -->
+                <div style="font-size: 0.75em; color: #999; text-align: center; margin-bottom: 5px;">👇 习惯与计划完成趋势 👇</div>
                 <div class="stat-chart-container" id="statChart"></div>
             </div>
         </div>
@@ -604,14 +622,13 @@
     
     <div style="grid-column: 1/-1; text-align: center; margin-top: 20px; border-top:1px solid #eee; padding-top:20px;">
         <input type="file" id="fileInput" style="display: none;" onchange="importData(this)">
-        <div style="font-size: 0.8em; color: #aaa;">V51 - 橙子成长·完美布局版 (Code by DeepSeek)</div>
+        <div style="font-size: 0.8em; color: #aaa;">V55 - 橙子成长·终极精简版</div>
         <div id="syncStatus">Waiting for login...</div>
     </div>
 </div>
 
 <script>
     // === 1. SUPABASE CONFIGURATION ===
-    // ⚠️ 务必修改数据库中的 id 列类型为 text !!!
     const supabaseUrl = 'https://yfqipywumroxanjiaagu.supabase.co'; 
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlmcWlweXd1bXJveGFuamlhYWd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMDg1MTAsImV4cCI6MjA3OTc4NDUxMH0.JEu1LBQgOxoMLkBfFcv76P636LxyKEGRzhBSjg9VPIw'; 
     
@@ -651,6 +668,7 @@
     let remainingSeconds = 0;
     let currentTaskVal = 0;
     let currentBankMode = 'deposit';
+    let currentStatRange = 'week'; // 新增：全局记录当前查看的统计范围
 
     // --- 启动入口 ---
     window.onload = checkLogin;
@@ -673,6 +691,7 @@
         currentUserId = inputId;
         localStorage.setItem('orange_current_user', currentUserId);
         document.getElementById('loginModal').style.display = 'none';
+        isParentMode = false; // 重置家长模式状态
         initApp();
     }
 
@@ -685,6 +704,9 @@
 
     // --- 核心：云端初始化 ---
     async function initApp() {
+        // 【关键修复】每次初始化前，强制重置state，防止多用户数据混淆
+        state = JSON.parse(JSON.stringify(defaultData));
+
         document.getElementById('appContainer').style.display = 'block'; 
         document.getElementById('userIdDisplay').innerText = `@${currentUserId}`;
         updateSyncStatus('loading');
@@ -699,7 +721,7 @@
 
             if (error && error.code !== 'PGRST116') { 
                 console.error('Cloud load error:', error);
-                alert('云端同步出错，使用本地缓存');
+                // 仅控制台报错，不打断流程，尝试本地
                 loadFromLocal();
             } else if (data && data.content) {
                 // 2. 成功获取
@@ -723,8 +745,13 @@
         if (!state.inventory) state.inventory = [];
         if (state.isMuted === undefined) state.isMuted = false;
         
-        state.habits = state.habits.length ? state.habits : [{id:Date.now(), text:"早睡早起", val:5, done:false, streak:0, lastDate:''}];
-        state.rewards = state.rewards.length ? state.rewards : [{id:Date.now()+2, text:"看电视", cost:20, icon:"📺"}];
+        // 确保habits不为空数组
+        if (!state.habits || state.habits.length === 0) {
+            state.habits = [{id:Date.now(), text:"早睡早起", val:5, done:false, streak:0, lastDate:''}];
+        }
+        if (!state.rewards || state.rewards.length === 0) {
+             state.rewards = [{id:Date.now()+2, text:"看电视", cost:20, icon:"📺"}];
+        }
         
         dailyCheck(); 
         checkMood(); 
@@ -737,12 +764,13 @@
     }
 
     function loadFromLocal() {
-        // 使用带用户ID的 Key，实现本地隔离
+        // 【关键修复】使用带用户ID的 Key，实现本地隔离
         const saved = localStorage.getItem(`kidPlanState_v51_${currentUserId}`);
         if (saved) {
             try {
+                // 合并默认值，防止字段缺失
                 state = { ...defaultData, ...JSON.parse(saved) };
-            } catch(e) {}
+            } catch(e) { console.error(e); }
         }
         updateSyncStatus('error');
     }
@@ -777,11 +805,25 @@
         else if (status === 'error') el.innerHTML = '<span class="sync-dot red"></span> 同步失败(离线)';
     }
 
-    // --- V50 数据回顾 (统计功能) ---
+    // --- V54 数据回顾 (统计功能 - 终极修复版) ---
     function updateStats(range) {
-        document.querySelectorAll('.stat-btn').forEach(b => b.classList.remove('active'));
-        if (range !== 'custom') event.target.classList.add('active');
+        // 1. 记忆用户选择：如果传入了有效的range（不是空），更新全局变量
+        // 这样下次刷新时，会记住用户是选了“周”还是“月”
+        if (range && range !== 'custom') {
+            currentStatRange = range;
+        }
+        
+        // 如果没有传入参数（比如由 render() 自动调用），则使用全局记录的范围
+        const effectiveRange = range || currentStatRange;
 
+        // 2. 按钮高亮处理 (不再依赖点击事件 event)
+        const btns = document.querySelectorAll('.stat-btn');
+        btns.forEach(b => b.classList.remove('active'));
+        
+        if (effectiveRange === 'week') btns[0].classList.add('active');
+        else if (effectiveRange === 'month') btns[1].classList.add('active');
+        else if (effectiveRange === 'year') btns[2].classList.add('active');
+        
         const chartContainer = document.getElementById('statChart');
         chartContainer.innerHTML = '';
         
@@ -789,27 +831,28 @@
         let dataPoints = [];
         let totalScore = 0;
 
-        if (range === 'week') {
+        // 3. 根据 effectiveRange 生成数据
+        if (effectiveRange === 'week') {
             for (let i = 6; i >= 0; i--) {
                 const d = new Date(today);
                 d.setDate(d.getDate() - i);
                 const key = d.toDateString();
                 const score = state.history[key] || 0;
                 const dayName = ['日','一','二','三','四','五','六'][d.getDay()];
-                dataPoints.push({ label: dayName, val: score, date: d.toLocaleDateString() });
+                dataPoints.push({ label: '周'+dayName, val: score, date: d.toLocaleDateString() });
                 totalScore += score;
             }
-        } else if (range === 'month') {
+        } else if (effectiveRange === 'month') {
              for (let i = 29; i >= 0; i--) {
                 const d = new Date(today);
                 d.setDate(d.getDate() - i);
                 const key = d.toDateString();
                 const score = state.history[key] || 0;
-                const label = (i % 5 === 0) ? (d.getMonth()+1)+'/'+d.getDate() : ''; 
+                const label = (i % 5 === 0) ? (d.getMonth()+1)+'-'+d.getDate() : ''; 
                 dataPoints.push({ label: label, val: score, date: d.toLocaleDateString() });
                 totalScore += score;
             }
-        } else if (range === 'year') {
+        } else if (effectiveRange === 'year') {
             const monthlyData = {};
             for(let k in state.history) {
                 const d = new Date(k);
@@ -825,26 +868,43 @@
             }
         }
 
+        // 4. 更新数字
         document.getElementById('statTotal').innerText = totalScore;
-        const days = range === 'week' ? 7 : (range === 'month' ? 30 : 12);
-        document.getElementById('statAvg').innerText = Math.round(totalScore / (dataPoints.length || 1));
+        const avg = Math.round(totalScore / (dataPoints.length || 1));
+        document.getElementById('statAvg').innerText = avg;
 
-        const maxVal = Math.max(...dataPoints.map(p => p.val), 10);
+        // 5. 绘图
+        const maxVal = Math.max(...dataPoints.map(p => p.val), 10); 
+        
+        if (dataPoints.length === 0) {
+            chartContainer.innerHTML = '<div style="width:100%;text-align:center;color:#ccc;margin-top:20px;">暂无数据，快去完成任务吧！</div>';
+            return;
+        }
+
         dataPoints.forEach(p => {
             const height = (p.val / maxVal) * 100;
-            const color = p.val > 0 ? 'var(--plan-color)' : '#eee';
-            const hoverColor = p.val > 0 ? 'var(--habit-color)' : '#ddd';
+            let color = 'var(--plan-color)'; 
+            if (p.val === 0) color = '#f1f3f5';
+            else if (p.val >= avg * 1.5) color = '#ffec99';
+            else color = 'var(--secondary)'; 
+
+            const hoverColor = 'var(--habit-color)';
             
             const barGroup = document.createElement('div');
             barGroup.className = 'stat-bar-group';
-            barGroup.setAttribute('data-tooltip', `${p.date}: ${p.val}星`);
+            barGroup.setAttribute('data-tooltip', `${p.date}: 获得 ${p.val} 能量`);
             
             barGroup.innerHTML = `
                 <div class="stat-bar" style="height:${height}%; background:${color}; --h:${height}%"></div>
                 <div class="stat-date">${p.label}</div>
             `;
-            barGroup.onmouseover = function() { this.querySelector('.stat-bar').style.background = hoverColor; };
-            barGroup.onmouseout = function() { this.querySelector('.stat-bar').style.background = color; };
+            
+            barGroup.onmouseover = function() { 
+                if(p.val > 0) this.querySelector('.stat-bar').style.background = hoverColor; 
+            };
+            barGroup.onmouseout = function() { 
+                this.querySelector('.stat-bar').style.background = color; 
+            };
             
             chartContainer.appendChild(barGroup);
         });
@@ -1162,6 +1222,9 @@
         document.getElementById('newPlanVal').style.display = isParentMode ? 'block' : 'none';
         
         renderHistory(); renderWish(); renderBadges(); renderInventory(); renderBank();
+        
+        // 【核心修复】自动刷新统计图表（使用记忆的时间范围）
+        updateStats(currentStatRange); 
     }
     
     function addPlan() { 
@@ -1243,8 +1306,6 @@
         else if(anim==='planetFloat'){el.style.top=Math.random()*80+10+'%';el.style.fontSize=(Math.random()*30+20)+'px';dur=Math.random()*10+10;}
         if(!el.style.fontSize) el.style.fontSize=(Math.random()*20+15)+'px'; el.style.animation=`${anim} ${dur}s linear infinite`; el.style.animationDelay=`${Math.random()*-20}s`; c.appendChild(el); } }
     function confetti(){const c=['#f00','#0f0','#00f','#ff0'];for(let i=0;i<30;i++){let d=document.createElement('div');d.style.cssText=`position:fixed;z-index:999;left:${Math.random()*100}vw;top:0;width:8px;height:8px;background:${c[Math.floor(Math.random()*4)]};transition:1s`;document.body.appendChild(d);setTimeout(()=>{d.style.top='100vh';d.style.opacity=0},10);setTimeout(()=>{d.remove()},1000);}}
-
-    window.onload = init;
 </script>
 </body>
 </html>
